@@ -392,7 +392,6 @@
             animation: slideIn 0.3s ease-out;
         }
 
-        /* Adicionando overlay de carregamento visual para ações do banco */
         .loader-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -452,19 +451,15 @@
             .grid {
                 grid-template-columns: 1fr;
             }
-
             h1 {
                 font-size: 20px;
             }
-
             .modal-content {
                 padding: 20px;
             }
-
             .tabs {
                 gap: 5px;
             }
-
             .tab-btn {
                 padding: 10px 16px;
                 font-size: 14px;
@@ -678,10 +673,11 @@
         // SUBSTITUA ESTAS DUAS LINHAS PELAS SUAS CHAVES DO SUPABASE
         const SUPABASE_URL = 'https://oarodjpnnviyqjeahpan.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcm9kanBubnZpeXFqZWFocGFuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjM4ODUyMywiZXhwIjoyMDkxOTY0NTIzfQ.-CinrLGIVATgnQQk7VTpJQyjF5Q-6VrUAdRnwhSGzZs';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // CORREÇÃO: Variável renomeada para dbClient para evitar SyntaxError com a CDN
+        const dbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // ============ STORAGE MANAGEMENT (CACHE LOCAL) ============
-        // Ao invés do localStorage, mantemos os dados na memória para a UI não travar
         let appData = {
             services: [],
             tutorials: [],
@@ -696,18 +692,18 @@
         async function loadAllData() {
             showGlobalLoader(true);
             try {
+                // CORREÇÃO: Utilizando dbClient em todas as requisições
                 const [resServices, resTutorials, resIngredients, resAccounts] = await Promise.all([
-                    supabase.from('services').select('*'),
-                    supabase.from('creationTutorials').select('*'),
-                    supabase.from('ingredients').select('*'),
-                    supabase.from('accounts').select('*')
+                    dbClient.from('services').select('*'),
+                    dbClient.from('creationTutorials').select('*'),
+                    dbClient.from('ingredients').select('*'),
+                    dbClient.from('accounts').select('*')
                 ]);
 
                 appData.services = resServices.data || [];
                 appData.ingredients = resIngredients.data || [];
                 appData.accounts = resAccounts.data || [];
                 
-                // Tratamento especial para os passos do tutorial (JSON no Supabase)
                 const tuts = resTutorials.data || [];
                 tuts.forEach(t => {
                     if (typeof t.steps === 'string') {
@@ -728,7 +724,6 @@
             showGlobalLoader(false);
         }
 
-        // Funções Getter (Lêem do cache em memória)
         function getServices() { return appData.services; }
         function getTutorials() { return appData.tutorials; }
         function getIngredients() { return appData.ingredients; }
@@ -757,7 +752,6 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
-        // Gera um ID simples e seguro para compatibilidade com VARCHAR(36)
         function generateId() {
             return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
         }
@@ -814,11 +808,11 @@
 
             if (currentServiceId) {
                 payload.id = currentServiceId;
-                const { error } = await supabase.from('services').update(payload).eq('id', currentServiceId);
+                const { error } = await dbClient.from('services').update(payload).eq('id', currentServiceId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             } else {
                 payload.id = generateId();
-                const { error } = await supabase.from('services').insert([payload]);
+                const { error } = await dbClient.from('services').insert([payload]);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             }
 
@@ -830,7 +824,7 @@
         async function deleteService(serviceId) {
             if (confirm('Tem certeza que deseja deletar este serviço? Isso pode afetar as contas cadastradas.')) {
                 showGlobalLoader(true);
-                const { error } = await supabase.from('services').delete().eq('id', serviceId);
+                const { error } = await dbClient.from('services').delete().eq('id', serviceId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
                 showToast('Serviço deletado!');
                 await loadAllData();
@@ -1005,7 +999,7 @@
                 description,
                 color,
                 difficulty,
-                steps: JSON.stringify(tutorialSteps), // Supabase armazena como JSON string ou JSONB
+                steps: JSON.stringify(tutorialSteps),
                 loginsCreated: 0
             };
 
@@ -1013,11 +1007,11 @@
 
             if (currentTutorialId) {
                 payload.id = currentTutorialId;
-                const { error } = await supabase.from('creationTutorials').update(payload).eq('id', currentTutorialId);
+                const { error } = await dbClient.from('creationTutorials').update(payload).eq('id', currentTutorialId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             } else {
                 payload.id = generateId();
-                const { error } = await supabase.from('creationTutorials').insert([payload]);
+                const { error } = await dbClient.from('creationTutorials').insert([payload]);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             }
 
@@ -1029,7 +1023,7 @@
         async function deleteTutorial(tutorialId) {
             if (confirm('Tem certeza que deseja deletar este tutorial?')) {
                 showGlobalLoader(true);
-                const { error } = await supabase.from('creationTutorials').delete().eq('id', tutorialId);
+                const { error } = await dbClient.from('creationTutorials').delete().eq('id', tutorialId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
                 showToast('Tutorial deletado!');
                 await loadAllData();
@@ -1051,7 +1045,7 @@
                     <p>${tutorial.description || 'Sem descrição'}</p>
                     <span class="badge">${tutorial.steps ? tutorial.steps.length : 0} passos</span>
                     <span class="badge">${tutorial.difficulty}</span>
-                    <div class="actions">
+                    <div class="actions" style="margin-top: 15px;">
                         <button class="btn-secondary btn-small" onclick="openTutorialModal('${tutorial.id}')">Editar</button>
                         <button class="btn-danger btn-small" onclick="deleteTutorial('${tutorial.id}')">Deletar</button>
                     </div>
@@ -1109,11 +1103,11 @@
 
             if (currentIngredientId) {
                 payload.id = currentIngredientId;
-                const { error } = await supabase.from('ingredients').update(payload).eq('id', currentIngredientId);
+                const { error } = await dbClient.from('ingredients').update(payload).eq('id', currentIngredientId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             } else {
                 payload.id = generateId();
-                const { error } = await supabase.from('ingredients').insert([payload]);
+                const { error } = await dbClient.from('ingredients').insert([payload]);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             }
 
@@ -1125,7 +1119,7 @@
         async function deleteIngredient(ingredientId) {
             if (confirm('Tem certeza que deseja deletar este ingrediente?')) {
                 showGlobalLoader(true);
-                const { error } = await supabase.from('ingredients').delete().eq('id', ingredientId);
+                const { error } = await dbClient.from('ingredients').delete().eq('id', ingredientId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
                 showToast('Ingrediente deletado!');
                 await loadAllData();
@@ -1207,13 +1201,12 @@
 
             if (currentAccountId) {
                 payload.id = currentAccountId;
-                // Mantém a contagem de usos original ao atualizar
                 delete payload.usageCount; 
-                const { error } = await supabase.from('accounts').update(payload).eq('id', currentAccountId);
+                const { error } = await dbClient.from('accounts').update(payload).eq('id', currentAccountId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             } else {
                 payload.id = generateId();
-                const { error } = await supabase.from('accounts').insert([payload]);
+                const { error } = await dbClient.from('accounts').insert([payload]);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
             }
 
@@ -1225,7 +1218,7 @@
         async function deleteAccount(accountId) {
             if (confirm('Tem certeza que deseja deletar esta conta?')) {
                 showGlobalLoader(true);
-                const { error } = await supabase.from('accounts').delete().eq('id', accountId);
+                const { error } = await dbClient.from('accounts').delete().eq('id', accountId);
                 if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
                 showToast('Conta deletada!');
                 await loadAllData();
@@ -1250,7 +1243,7 @@
                         <p>Email: <strong>${account.email}</strong></p>
                         <p>Senha: <strong>${account.password}</strong></p>
                         <p>Usos: ${account.usageCount || 0}</p>
-                        <div class="actions">
+                        <div class="actions" style="margin-top: 15px;">
                             <button class="btn-secondary btn-small" onclick="openAccountModal('${account.id}')">Editar</button>
                             <button class="btn-danger btn-small" onclick="deleteAccount('${account.id}')">Deletar</button>
                         </div>
@@ -1261,7 +1254,7 @@
 
         // ============ INITIALIZATION ============
         window.addEventListener('load', () => {
-            loadAllData(); // Dispara o fetch inicial ao carregar a tela
+            loadAllData();
         });
     </script>
 </body>
