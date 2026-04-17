@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubManager - Gerenciador Completo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 2px solid #0ea5e9;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #0ea5e9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: #0ea5e9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0f172a;
+            font-size: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #334155;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #0ea5e9;
+            border-bottom-color: #0ea5e9;
+        }
+
+        .tab-btn:hover {
+            color: #0ea5e9;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+        }
+
+        .card h3 {
+            color: #0ea5e9;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .card p {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .color-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 2px solid #475569;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #0ea5e9;
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: #0284c7;
+        }
+
+        .btn-secondary {
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-add {
+            background: #0ea5e9;
+            color: #0f172a;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .btn-add:hover {
+            background: #0284c7;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0ea5e9;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            margin: 20px auto;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .modal-header h2 {
+            color: #0ea5e9;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-btn:hover {
+            color: #0ea5e9;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .steps-container {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .step {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .step-number {
+            background: #0ea5e9;
+            color: #0f172a;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #0f172a;
+            aspect-ratio: 1;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-remove {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0ea5e9;
+            color: #0f172a;
+            padding: 16px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Adicionando overlay de carregamento visual para ações do banco */
+        .loader-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            color: #0ea5e9;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #334155;
+            color: #0ea5e9;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        .stat-box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0ea5e9;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .tabs {
+                gap: 5px;
+            }
+
+            .tab-btn {
+                padding: 10px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="globalLoader" class="loader-overlay">Sincronizando com a Nuvem...</div>
+
+    <div class="container">
+        <header>
+            <h1>
+                <div class="logo">⚡</div>
+                SubManager
+            </h1>
+            <button class="btn-secondary" onclick="loadAllData()">🔄 Atualizar Dados</button>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('services')">Serviços</button>
+            <button class="tab-btn" onclick="switchTab('tutorials')">Tutoriais</button>
+            <button class="tab-btn" onclick="switchTab('ingredients')">Ingredientes</button>
+            <button class="tab-btn" onclick="switchTab('accounts')">Contas</button>
+        </div>
+
+        <div id="dashboard" class="tab-content active">
+            <div class="grid">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalServices">0</div>
+                    <div class="stat-label">Serviços</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalTutorials">0</div>
+                    <div class="stat-label">Tutoriais</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalAccounts">0</div>
+                    <div class="stat-label">Contas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="totalIngredients">0</div>
+                    <div class="stat-label">Ingredientes</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="services" class="tab-content">
+            <button class="btn-add" onclick="openServiceModal()">+ Novo Serviço</button>
+            <div id="servicesContainer" class="grid"></div>
+        </div>
+
+        <div id="tutorials" class="tab-content">
+            <button class="btn-add" onclick="openTutorialModal()">+ Novo Tutorial</button>
+            <div id="tutorialsContainer" class="grid"></div>
+        </div>
+
+        <div id="ingredients" class="tab-content">
+            <button class="btn-add" onclick="openIngredientModal()">+ Novo Ingrediente</button>
+            <div id="ingredientsContainer" class="grid"></div>
+        </div>
+
+        <div id="accounts" class="tab-content">
+            <button class="btn-add" onclick="openAccountModal()">+ Nova Conta</button>
+            <div id="accountsContainer" class="grid"></div>
+        </div>
+    </div>
+
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="serviceModalTitle">Novo Serviço</h2>
+                <button class="close-btn" onclick="closeServiceModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nome do Serviço</label>
+                <input type="text" id="serviceName" placeholder="Ex: Netflix">
+            </div>
+            <div class="form-group">
+                <label>Cor</label>
+                <input type="color" id="serviceColor" value="#0ea5e9">
+            </div>
+            <div class="form-group">
+                <label>Tipo de Acesso</label>
+                <select id="serviceAccessType">
+                    <option value="shared">Compartilhado</option>
+                    <option value="private">Privado</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notas</label>
+                <textarea id="serviceNotes" placeholder="Notas sobre o serviço" rows="3"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeServiceModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveService()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tutorialModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="tutorialModalTitle">Novo Tutorial</h2>
+                <button class="close-btn" onclick="closeTutorialModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nome do Tutorial</label>
+                <input type="text" id="tutorialName" placeholder="Ex: Como criar conta">
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea id="tutorialDescription" placeholder="Descrição" rows="2"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Cor</label>
+                <input type="color" id="tutorialColor" value="#0ea5e9">
+            </div>
+            <div class="form-group">
+                <label>Dificuldade</label>
+                <select id="tutorialDifficulty">
+                    <option value="fácil">Fácil</option>
+                    <option value="médio">Médio</option>
+                    <option value="difícil">Difícil</option>
+                </select>
+            </div>
+            <div id="tutorialStepsContainer" class="steps-container">
+                <h3 style="color: #0ea5e9; margin-bottom: 15px;">Passos</h3>
+                <div id="stepsContainer"></div>
+                <button class="btn-secondary" onclick="addTutorialStep()" style="width: 100%; margin-top: 10px;">+ Adicionar Passo</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeTutorialModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveTutorial()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="ingredientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="ingredientModalTitle">Novo Ingrediente</h2>
+                <button class="close-btn" onclick="closeIngredientModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="ingredientName" placeholder="Ex: Emails">
+            </div>
+            <div class="form-group">
+                <label>Quantidade</label>
+                <input type="number" id="ingredientQuantity" value="0">
+            </div>
+            <div class="form-group">
+                <label>Unidade</label>
+                <input type="text" id="ingredientUnit" value="un">
+            </div>
+            <div class="form-group">
+                <label>Estoque Mínimo</label>
+                <input type="number" id="ingredientMinStock" value="0">
+            </div>
+            <div class="form-group">
+                <label>Cor</label>
+                <input type="color" id="ingredientColor" value="#0ea5e9">
+            </div>
+            <div class="form-group">
+                <label>Notas</label>
+                <textarea id="ingredientNotes" rows="2"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeIngredientModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveIngredient()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="accountModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="accountModalTitle">Nova Conta</h2>
+                <button class="close-btn" onclick="closeAccountModal()">×</button>
+            </div>
+            <div class="form-group">
+                <label>Serviço</label>
+                <select id="accountService">
+                    <option value="">Selecione um serviço</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="accountEmail" placeholder="email@example.com">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="accountPassword" placeholder="Senha">
+            </div>
+            <div class="form-group">
+                <label>Link</label>
+                <input type="text" id="accountLink" placeholder="https://...">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeAccountModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveAccount()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ CONFIGURAÇÕES SUPABASE ============
+        // SUBSTITUA ESTAS DUAS LINHAS PELAS SUAS CHAVES DO SUPABASE
+        const SUPABASE_URL = 'https://oarodjpnnviyqjeahpan.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcm9kanBubnZpeXFqZWFocGFuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjM4ODUyMywiZXhwIjoyMDkxOTY0NTIzfQ.-CinrLGIVATgnQQk7VTpJQyjF5Q-6VrUAdRnwhSGzZs';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ============ STORAGE MANAGEMENT (CACHE LOCAL) ============
+        // Ao invés do localStorage, mantemos os dados na memória para a UI não travar
+        let appData = {
+            services: [],
+            tutorials: [],
+            ingredients: [],
+            accounts: []
+        };
+
+        function showGlobalLoader(show) {
+            document.getElementById('globalLoader').style.display = show ? 'flex' : 'none';
+        }
+
+        async function loadAllData() {
+            showGlobalLoader(true);
+            try {
+                const [resServices, resTutorials, resIngredients, resAccounts] = await Promise.all([
+                    supabase.from('services').select('*'),
+                    supabase.from('creationTutorials').select('*'),
+                    supabase.from('ingredients').select('*'),
+                    supabase.from('accounts').select('*')
+                ]);
+
+                appData.services = resServices.data || [];
+                appData.ingredients = resIngredients.data || [];
+                appData.accounts = resAccounts.data || [];
+                
+                // Tratamento especial para os passos do tutorial (JSON no Supabase)
+                const tuts = resTutorials.data || [];
+                tuts.forEach(t => {
+                    if (typeof t.steps === 'string') {
+                        try { t.steps = JSON.parse(t.steps); } catch(e) { t.steps = []; }
+                    }
+                });
+                appData.tutorials = tuts;
+
+                updateDashboard();
+                renderServices();
+                renderTutorials();
+                renderIngredients();
+                renderAccounts();
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+                showToast("Erro ao sincronizar dados!");
+            }
+            showGlobalLoader(false);
+        }
+
+        // Funções Getter (Lêem do cache em memória)
+        function getServices() { return appData.services; }
+        function getTutorials() { return appData.tutorials; }
+        function getIngredients() { return appData.ingredients; }
+        function getAccounts() { return appData.accounts; }
+
+        // ============ UI MANAGEMENT ============
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'dashboard') updateDashboard();
+            if (tabName === 'services') renderServices();
+            if (tabName === 'tutorials') renderTutorials();
+            if (tabName === 'ingredients') renderIngredients();
+            if (tabName === 'accounts') renderAccounts();
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Gera um ID simples e seguro para compatibilidade com VARCHAR(36)
+        function generateId() {
+            return crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // ============ DASHBOARD ============
+        function updateDashboard() {
+            document.getElementById('totalServices').textContent = getServices().length;
+            document.getElementById('totalTutorials').textContent = getTutorials().length;
+            document.getElementById('totalAccounts').textContent = getAccounts().length;
+            document.getElementById('totalIngredients').textContent = getIngredients().length;
+        }
+
+        // ============ SERVICES ============
+        let currentServiceId = null;
+
+        function openServiceModal(serviceId = null) {
+            currentServiceId = serviceId;
+            const modal = document.getElementById('serviceModal');
+            const services = getServices();
+            
+            if (serviceId) {
+                const service = services.find(s => s.id === serviceId);
+                document.getElementById('serviceModalTitle').textContent = 'Editar Serviço';
+                document.getElementById('serviceName').value = service.name;
+                document.getElementById('serviceColor').value = service.color;
+                document.getElementById('serviceAccessType').value = service.accessType;
+                document.getElementById('serviceNotes').value = service.notes || '';
+            } else {
+                document.getElementById('serviceModalTitle').textContent = 'Novo Serviço';
+                document.getElementById('serviceName').value = '';
+                document.getElementById('serviceColor').value = '#0ea5e9';
+                document.getElementById('serviceAccessType').value = 'shared';
+                document.getElementById('serviceNotes').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeServiceModal() {
+            document.getElementById('serviceModal').classList.remove('active');
+            currentServiceId = null;
+        }
+
+        async function saveService() {
+            const name = document.getElementById('serviceName').value.trim();
+            const color = document.getElementById('serviceColor').value;
+            const accessType = document.getElementById('serviceAccessType').value;
+            const notes = document.getElementById('serviceNotes').value;
+
+            if (!name) return showToast('Nome é obrigatório');
+
+            const payload = { name, color, accessType, notes };
+            showGlobalLoader(true);
+
+            if (currentServiceId) {
+                payload.id = currentServiceId;
+                const { error } = await supabase.from('services').update(payload).eq('id', currentServiceId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            } else {
+                payload.id = generateId();
+                const { error } = await supabase.from('services').insert([payload]);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            }
+
+            showToast(currentServiceId ? 'Serviço atualizado!' : 'Serviço criado!');
+            closeServiceModal();
+            await loadAllData();
+        }
+
+        async function deleteService(serviceId) {
+            if (confirm('Tem certeza que deseja deletar este serviço? Isso pode afetar as contas cadastradas.')) {
+                showGlobalLoader(true);
+                const { error } = await supabase.from('services').delete().eq('id', serviceId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+                showToast('Serviço deletado!');
+                await loadAllData();
+            }
+        }
+
+        function renderServices() {
+            const services = getServices();
+            const container = document.getElementById('servicesContainer');
+
+            if (services.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Nenhum serviço criado</p></div>';
+                return;
+            }
+
+            container.innerHTML = services.map(service => `
+                <div class="card">
+                    <div class="card-info">
+                        <h3>${service.name}</h3>
+                        <div class="color-box" style="background-color: ${service.color}"></div>
+                    </div>
+                    <p>${service.notes || 'Sem notas'}</p>
+                    <span class="badge">${service.accessType === 'shared' ? '👥 Compartilhado' : '🔒 Privado'}</span>
+                    <div class="actions">
+                        <button class="btn-secondary btn-small" onclick="openServiceModal('${service.id}')">Editar</button>
+                        <button class="btn-danger btn-small" onclick="deleteService('${service.id}')">Deletar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============ TUTORIALS ============
+        let currentTutorialId = null;
+        let tutorialSteps = [];
+
+        function openTutorialModal(tutorialId = null) {
+            currentTutorialId = tutorialId;
+            const modal = document.getElementById('tutorialModal');
+            const tutorials = getTutorials();
+
+            if (tutorialId) {
+                const tutorial = tutorials.find(t => t.id === tutorialId);
+                document.getElementById('tutorialModalTitle').textContent = 'Editar Tutorial';
+                document.getElementById('tutorialName').value = tutorial.name;
+                document.getElementById('tutorialDescription').value = tutorial.description || '';
+                document.getElementById('tutorialColor').value = tutorial.color;
+                document.getElementById('tutorialDifficulty').value = tutorial.difficulty;
+                tutorialSteps = JSON.parse(JSON.stringify(tutorial.steps || []));
+            } else {
+                document.getElementById('tutorialModalTitle').textContent = 'Novo Tutorial';
+                document.getElementById('tutorialName').value = '';
+                document.getElementById('tutorialDescription').value = '';
+                document.getElementById('tutorialColor').value = '#0ea5e9';
+                document.getElementById('tutorialDifficulty').value = 'fácil';
+                tutorialSteps = [];
+            }
+
+            renderTutorialSteps();
+            modal.classList.add('active');
+        }
+
+        function closeTutorialModal() {
+            document.getElementById('tutorialModal').classList.remove('active');
+            currentTutorialId = null;
+            tutorialSteps = [];
+        }
+
+        function addTutorialStep() {
+            tutorialSteps.push({
+                id: Date.now().toString(),
+                number: tutorialSteps.length + 1,
+                title: '',
+                description: '',
+                tips: [],
+                images: []
+            });
+            renderTutorialSteps();
+        }
+
+        function removeTutorialStep(stepId) {
+            tutorialSteps = tutorialSteps.filter(s => s.id !== stepId);
+            tutorialSteps.forEach((s, i) => s.number = i + 1);
+            renderTutorialSteps();
+        }
+
+        function updateTutorialStep(stepId, field, value) {
+            const step = tutorialSteps.find(s => s.id === stepId);
+            if (step) {
+                step[field] = value;
+            }
+        }
+
+        function addStepImage(stepId, file) {
+            const step = tutorialSteps.find(s => s.id === stepId);
+            if (!step) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (!step.images) step.images = [];
+                step.images.push({
+                    id: Date.now().toString(),
+                    data: e.target.result
+                });
+                renderTutorialSteps();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeStepImage(stepId, imageId) {
+            const step = tutorialSteps.find(s => s.id === stepId);
+            if (step) {
+                step.images = (step.images || []).filter(img => img.id !== imageId);
+                renderTutorialSteps();
+            }
+        }
+
+        function renderTutorialSteps() {
+            const container = document.getElementById('stepsContainer');
+            container.innerHTML = tutorialSteps.map(step => `
+                <div class="step">
+                    <div class="step-header">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                            <div class="step-number">${step.number}</div>
+                            <input type="text" placeholder="Título" value="${step.title}" 
+                                onchange="updateTutorialStep('${step.id}', 'title', this.value)"
+                                style="flex: 1; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0;">
+                        </div>
+                        <button class="btn-danger btn-small" onclick="removeTutorialStep('${step.id}')">Remover</button>
+                    </div>
+                    <textarea placeholder="Descrição" 
+                        onchange="updateTutorialStep('${step.id}', 'description', this.value)"
+                        style="width: 100%; padding: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0; margin-top: 10px; resize: vertical; min-height: 60px;">${step.description}</textarea>
+                    
+                    <div style="margin-top: 10px;">
+                        <label style="display: block; margin-bottom: 8px; color: #0ea5e9; font-size: 12px;">Imagens</label>
+                        <input type="file" accept="image/*" multiple onchange="
+                            for (let file of this.files) {
+                                if (file.size <= 5 * 1024 * 1024) {
+                                    addStepImage('${step.id}', file);
+                                } else {
+                                    alert('Imagem muito grande: ' + file.name);
+                                }
+                            }
+                        " style="padding: 8px; width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 4px; color: #e2e8f0;">
+                    </div>
+
+                    ${(step.images && step.images.length > 0) ? `
+                        <div class="image-grid">
+                            ${step.images.map(img => `
+                                <div class="image-item">
+                                    <img src="${img.data}" alt="Passo ${step.number}">
+                                    <button class="image-remove" onclick="removeStepImage('${step.id}', '${img.id}')">×</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        async function saveTutorial() {
+            const name = document.getElementById('tutorialName').value.trim();
+            const description = document.getElementById('tutorialDescription').value;
+            const color = document.getElementById('tutorialColor').value;
+            const difficulty = document.getElementById('tutorialDifficulty').value;
+
+            if (!name) return showToast('Nome é obrigatório');
+            if (tutorialSteps.length === 0) return showToast('Adicione pelo menos um passo');
+
+            const payload = {
+                name,
+                description,
+                color,
+                difficulty,
+                steps: JSON.stringify(tutorialSteps), // Supabase armazena como JSON string ou JSONB
+                loginsCreated: 0
+            };
+
+            showGlobalLoader(true);
+
+            if (currentTutorialId) {
+                payload.id = currentTutorialId;
+                const { error } = await supabase.from('creationTutorials').update(payload).eq('id', currentTutorialId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            } else {
+                payload.id = generateId();
+                const { error } = await supabase.from('creationTutorials').insert([payload]);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            }
+
+            showToast(currentTutorialId ? 'Tutorial atualizado!' : 'Tutorial criado!');
+            closeTutorialModal();
+            await loadAllData();
+        }
+
+        async function deleteTutorial(tutorialId) {
+            if (confirm('Tem certeza que deseja deletar este tutorial?')) {
+                showGlobalLoader(true);
+                const { error } = await supabase.from('creationTutorials').delete().eq('id', tutorialId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+                showToast('Tutorial deletado!');
+                await loadAllData();
+            }
+        }
+
+        function renderTutorials() {
+            const tutorials = getTutorials();
+            const container = document.getElementById('tutorialsContainer');
+
+            if (tutorials.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📚</div><p>Nenhum tutorial criado</p></div>';
+                return;
+            }
+
+            container.innerHTML = tutorials.map(tutorial => `
+                <div class="card">
+                    <h3>${tutorial.name}</h3>
+                    <p>${tutorial.description || 'Sem descrição'}</p>
+                    <span class="badge">${tutorial.steps ? tutorial.steps.length : 0} passos</span>
+                    <span class="badge">${tutorial.difficulty}</span>
+                    <div class="actions">
+                        <button class="btn-secondary btn-small" onclick="openTutorialModal('${tutorial.id}')">Editar</button>
+                        <button class="btn-danger btn-small" onclick="deleteTutorial('${tutorial.id}')">Deletar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============ INGREDIENTS ============
+        let currentIngredientId = null;
+
+        function openIngredientModal(ingredientId = null) {
+            currentIngredientId = ingredientId;
+            const modal = document.getElementById('ingredientModal');
+            const ingredients = getIngredients();
+            
+            if (ingredientId) {
+                const ingredient = ingredients.find(i => i.id === ingredientId);
+                document.getElementById('ingredientModalTitle').textContent = 'Editar Ingrediente';
+                document.getElementById('ingredientName').value = ingredient.name;
+                document.getElementById('ingredientQuantity').value = ingredient.quantity;
+                document.getElementById('ingredientUnit').value = ingredient.unit;
+                document.getElementById('ingredientMinStock').value = ingredient.minStock;
+                document.getElementById('ingredientColor').value = ingredient.color;
+                document.getElementById('ingredientNotes').value = ingredient.notes || '';
+            } else {
+                document.getElementById('ingredientModalTitle').textContent = 'Novo Ingrediente';
+                document.getElementById('ingredientName').value = '';
+                document.getElementById('ingredientQuantity').value = '0';
+                document.getElementById('ingredientUnit').value = 'un';
+                document.getElementById('ingredientMinStock').value = '0';
+                document.getElementById('ingredientColor').value = '#0ea5e9';
+                document.getElementById('ingredientNotes').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeIngredientModal() {
+            document.getElementById('ingredientModal').classList.remove('active');
+            currentIngredientId = null;
+        }
+
+        async function saveIngredient() {
+            const name = document.getElementById('ingredientName').value.trim();
+            const quantity = parseInt(document.getElementById('ingredientQuantity').value) || 0;
+            const unit = document.getElementById('ingredientUnit').value;
+            const minStock = parseInt(document.getElementById('ingredientMinStock').value) || 0;
+            const color = document.getElementById('ingredientColor').value;
+            const notes = document.getElementById('ingredientNotes').value;
+
+            if (!name) return showToast('Nome é obrigatório');
+
+            const payload = { name, quantity, unit, minStock, color, notes };
+            showGlobalLoader(true);
+
+            if (currentIngredientId) {
+                payload.id = currentIngredientId;
+                const { error } = await supabase.from('ingredients').update(payload).eq('id', currentIngredientId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            } else {
+                payload.id = generateId();
+                const { error } = await supabase.from('ingredients').insert([payload]);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            }
+
+            showToast(currentIngredientId ? 'Ingrediente atualizado!' : 'Ingrediente criado!');
+            closeIngredientModal();
+            await loadAllData();
+        }
+
+        async function deleteIngredient(ingredientId) {
+            if (confirm('Tem certeza que deseja deletar este ingrediente?')) {
+                showGlobalLoader(true);
+                const { error } = await supabase.from('ingredients').delete().eq('id', ingredientId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+                showToast('Ingrediente deletado!');
+                await loadAllData();
+            }
+        }
+
+        function renderIngredients() {
+            const ingredients = getIngredients();
+            const container = document.getElementById('ingredientsContainer');
+
+            if (ingredients.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>Nenhum ingrediente criado</p></div>';
+                return;
+            }
+
+            container.innerHTML = ingredients.map(ingredient => `
+                <div class="card">
+                    <div class="card-info">
+                        <h3>${ingredient.name}</h3>
+                        <div class="color-box" style="background-color: ${ingredient.color}"></div>
+                    </div>
+                    <p>Quantidade: <strong>${ingredient.quantity} ${ingredient.unit}</strong></p>
+                    <p>Mínimo: ${ingredient.minStock}</p>
+                    <p>${ingredient.notes || 'Sem notas'}</p>
+                    <div class="actions">
+                        <button class="btn-secondary btn-small" onclick="openIngredientModal('${ingredient.id}')">Editar</button>
+                        <button class="btn-danger btn-small" onclick="deleteIngredient('${ingredient.id}')">Deletar</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============ ACCOUNTS ============
+        let currentAccountId = null;
+
+        function openAccountModal(accountId = null) {
+            currentAccountId = accountId;
+            const modal = document.getElementById('accountModal');
+            const accounts = getAccounts();
+            const services = getServices();
+
+            const serviceSelect = document.getElementById('accountService');
+            serviceSelect.innerHTML = '<option value="">Selecione um serviço</option>' + 
+                services.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            
+            if (accountId) {
+                const account = accounts.find(a => a.id === accountId);
+                document.getElementById('accountModalTitle').textContent = 'Editar Conta';
+                document.getElementById('accountService').value = account.serviceId;
+                document.getElementById('accountEmail').value = account.email;
+                document.getElementById('accountPassword').value = account.password;
+                document.getElementById('accountLink').value = account.link || '';
+            } else {
+                document.getElementById('accountModalTitle').textContent = 'Nova Conta';
+                document.getElementById('accountService').value = '';
+                document.getElementById('accountEmail').value = '';
+                document.getElementById('accountPassword').value = '';
+                document.getElementById('accountLink').value = '';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeAccountModal() {
+            document.getElementById('accountModal').classList.remove('active');
+            currentAccountId = null;
+        }
+
+        async function saveAccount() {
+            const serviceId = document.getElementById('accountService').value;
+            const email = document.getElementById('accountEmail').value.trim();
+            const password = document.getElementById('accountPassword').value;
+            const link = document.getElementById('accountLink').value;
+
+            if (!serviceId || !email || !password) return showToast('Preencha todos os campos obrigatórios');
+
+            const payload = { serviceId, email, password, link, usageCount: 0 };
+            showGlobalLoader(true);
+
+            if (currentAccountId) {
+                payload.id = currentAccountId;
+                // Mantém a contagem de usos original ao atualizar
+                delete payload.usageCount; 
+                const { error } = await supabase.from('accounts').update(payload).eq('id', currentAccountId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            } else {
+                payload.id = generateId();
+                const { error } = await supabase.from('accounts').insert([payload]);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+            }
+
+            showToast(currentAccountId ? 'Conta atualizada!' : 'Conta criada!');
+            closeAccountModal();
+            await loadAllData();
+        }
+
+        async function deleteAccount(accountId) {
+            if (confirm('Tem certeza que deseja deletar esta conta?')) {
+                showGlobalLoader(true);
+                const { error } = await supabase.from('accounts').delete().eq('id', accountId);
+                if(error) { showGlobalLoader(false); return showToast('Erro: ' + error.message); }
+                showToast('Conta deletada!');
+                await loadAllData();
+            }
+        }
+
+        function renderAccounts() {
+            const accounts = getAccounts();
+            const services = getServices();
+            const container = document.getElementById('accountsContainer');
+
+            if (accounts.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔑</div><p>Nenhuma conta criada</p></div>';
+                return;
+            }
+
+            container.innerHTML = accounts.map(account => {
+                const service = services.find(s => s.id === account.serviceId);
+                return `
+                    <div class="card">
+                        <h3>${service ? service.name : 'Serviço desconhecido'}</h3>
+                        <p>Email: <strong>${account.email}</strong></p>
+                        <p>Senha: <strong>${account.password}</strong></p>
+                        <p>Usos: ${account.usageCount || 0}</p>
+                        <div class="actions">
+                            <button class="btn-secondary btn-small" onclick="openAccountModal('${account.id}')">Editar</button>
+                            <button class="btn-danger btn-small" onclick="deleteAccount('${account.id}')">Deletar</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ INITIALIZATION ============
+        window.addEventListener('load', () => {
+            loadAllData(); // Dispara o fetch inicial ao carregar a tela
+        });
+    </script>
+</body>
+</html>
